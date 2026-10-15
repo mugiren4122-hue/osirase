@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>総合防災モニター ＆ テスト操作パネル</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #2f3136;
+            color: #dcddde;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Discord風 Embed カード共通 */
+        .embed-card {
+            background-color: #ffffff;
+            color: #2e3338;
+            width: 100%;
+            max-width: 480px;
+            border-left: 5px solid #f1c40f; 
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            box-sizing: border-box;
+            margin-bottom: 20px;
+        }
+
+        .embed-card.alert-red {
+            border-left-color: #ed4245;
+            background-color: #fff5f5;
+        }
+
+        .embed-card.alert-orange {
+            border-left-color: #f39c12;
+            background-color: #fffdf5;
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #111;
+            margin: 0;
+        }
+
+        .description {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 12px;
+            white-space: pre-wrap;
+        }
+
+        .section-heading {
+            font-weight: bold;
+            font-size: 1rem;
+            color: #111;
+            margin-top: 10px;
+            margin-bottom: 5px;
+        }
+
+        .details-box {
+            background: #f8f9fa;
+            border: 1px solid #e3e5e8;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            color: #4f545c;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .map-box {
+            background-color: #111827;
+            border-radius: 8px;
+            height: 160px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9ca3af;
+            font-size: 0.85rem;
+            margin-bottom: 15px;
+        }
+
+        .action-icons {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .action-icon-item {
+            flex: 1;
+            background-color: #1e88e5;
+            color: #fff;
+            text-align: center;
+            padding: 8px 4px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            line-height: 1.3;
+        }
+
+        .link-btn {
+            display: block;
+            text-align: center;
+            background-color: #f2f3f5;
+            color: #4f545c;
+            text-decoration: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            border: 1px solid #e3e5e8;
+            margin-bottom: 10px;
+        }
+
+        .footer-time {
+            font-size: 0.8rem;
+            color: #747f8d;
+        }
+
+        /* 操作パネルのスタイル */
+        .control-panel {
+            background-color: #36393f;
+            border: 1px solid #4f545c;
+            width: 100%;
+            max-width: 480px;
+            padding: 15px;
+            border-radius: 8px;
+            box-sizing: border-box;
+            margin-bottom: 15px;
+        }
+
+        .control-panel h3 {
+            margin-top: 0;
+            font-size: 1rem;
+            color: #fff;
+            border-bottom: 1px solid #4f545c;
+            padding-bottom: 5px;
+        }
+
+        .panel-row {
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .panel-row label {
+            font-size: 0.85rem;
+            color: #b9bbbe;
+        }
+
+        .panel-row input {
+            padding: 8px;
+            font-size: 0.95rem;
+            border-radius: 4px;
+            border: 1px solid #72767d;
+            background-color: #2f3136;
+            color: #fff;
+            outline: none;
+        }
+
+        .panel-btns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .panel-btn {
+            padding: 10px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            color: white;
+            transition: opacity 0.2s;
+        }
+
+        .panel-btn:hover { opacity: 0.9; }
+        
+        .btn-quake { background-color: #2196f3; }
+        .btn-eew-forecast { background-color: #e67e22; }
+        .btn-eew-warning { background-color: #ed4245; grid-column: span 2; }
+        .btn-tsunami { background-color: #00bcd4; color: #000; }
+        .btn-p2p { background-color: #9c27b0; }
+        .btn-jalert { background-color: #e67e22; grid-column: span 2; }
+        
+        .status-msg {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: #b9bbbe;
+            grid-column: span 2;
+        }
+
+        .api-status-banner {
+            width: 100%;
+            max-width: 480px;
+            background-color: #202225;
+            border: 1px solid #4f545c;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            color: #b9bbbe;
+            text-align: center;
+            box-sizing: border-box;
+        }
+        .api-status-banner.error {
+            border-color: #ed4245;
+            color: #ed4245;
+            background-color: #2c2223;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 表示用Discord風カード -->
+    <div class="embed-card" id="mainCard">
+        <div class="header-container">
+            <h1 class="title" id="cardTitle">地震情報</h1>
+        </div>
+
+        <p class="description" id="quakeMsg">
+            最新データを取得中...
+        </p>
+
+        <div class="section-heading" id="headingLabel">震源・詳細</div>
+        <div class="details-box" id="targetAreas">
+            読込中...
+        </div>
+
+        <div class="map-box" id="mapBox">
+            🗺️ 該当地域ハイライトマップ
+        </div>
+
+        <div class="action-icons" id="actionIcons" style="display: none;">
+            <div class="action-icon-item">🚶‍♂️ まず低く<br><b>DROP!</b></div>
+            <div class="action-icon-item">🛡️ 頭を守り<br><b>COVER!</b></div>
+            <div class="action-icon-item">🛑 動かない<br><b>HOLD ON!</b></div>
+        </div>
+
+        <a href="https://www.jma.go.jp/bosai/map/" target="_blank" class="link-btn" id="linkBtn">
+            詳細情報・防災情報はこちら ↗
+        </a>
+
+        <div class="footer-time" id="reportTime">
+            気象庁 | --/-- --:--
+        </div>
+    </div>
+
+    <!-- 操作パネル（パスワード: jma19273） -->
+    <div class="control-panel">
+        <h3>🎛️ 災害・テスト発報操作パネル</h3>
+        
+        <div class="panel-row">
+            <label for="authPassword">発報パスワード (jma19273)：</label>
+            <input type="password" id="authPassword" placeholder="パスワードを入力">
+        </div>
+
+        <div class="panel-btns">
+            <button class="panel-btn btn-quake" onclick="sendTest('quake')">🔵 地震情報</button>
+            <button class="panel-btn btn-eew-forecast" onclick="sendTest('eew_forecast')">🟠 EEW(予報)</button>
+            <button class="panel-btn btn-tsunami" onclick="sendTest('tsunami')">🔵 津波情報</button>
+            <button class="panel-btn btn-p2p" onclick="sendTest('p2p')">🟣 ユーザー揺れ報告</button>
+            <button class="panel-btn btn-eew-warning" onclick="sendTest('eew_warning')">🔴 EEW(警報) 発報</button>
+            <button class="panel-btn btn-jalert" onclick="sendTest('jalert')">🚨 Jアラートテスト</button>
+            <div class="status-msg" id="panelStatus">準備完了</div>
+        </div>
+    </div>
+
+    <div class="api-status-banner" id="apiStatusBanner">
+        🔄 P2PQuake API 接続確認中...
+    </div>
+
+    <script>
+        const webhookUrl = 'https://discord.com/api/webhooks/1559925720694792283/nrJwZDelXMO9-cbFjYkov6_rJHITBCnX_iS3hZV95zToTnXLjppgoR8Ete5D3zffvyM_';
+        const correctPassword = 'jma19273';
+        const jalertRegions = "北海道 青森 岩手 宮城 秋田 山形 福島 茨城 栃木 群馬 埼玉 東京 神奈川 新潟 富山 石川 福井 山梨 長野 岐阜 静岡 愛知 三重 滋賀 京都 大阪 兵庫 奈良 和歌山 鳥取 島根 岡山 広島 山口 徳島 香川 愛媛 高知 福岡 佐賀 長崎 大分 宮崎 鹿児島 沖縄";
+
+        function checkPassword() {
+            const pass = document.getElementById('authPassword').value;
+            if (pass !== correctPassword) {
+                alert('パスワードが間違っています。');
+                document.getElementById('panelStatus').textContent = '❌ パスワードエラー';
+                return false;
+            }
+            return true;
+        }
+
+        async function fetchInitialEarthquake() {
+            const banner = document.getElementById('apiStatusBanner');
+            try {
+                const res = await fetch('https://api.p2pquake.net/v2/history?codes=551&limit=1');
+                if (!res.ok) throw new Error('Network response was not ok');
+                const data = await res.json();
+
+                if (data && data.length > 0) {
+                    const eq = data[0];
+                    const info = eq.earthquake;
+
+                    document.getElementById('cardTitle').textContent = '地震情報';
+                    document.getElementById('quakeMsg').textContent = `${eq.time.replace('T', ' ')}ごろ、地震がありました。`;
+                    document.getElementById('targetAreas').textContent = `震源：${info.hypocenter.name || '不明'} (規模: M${info.hypocenter.magnitude})`;
+                    document.getElementById('reportTime').textContent = `気象庁 | ${eq.time}`;
+                    
+                    banner.className = 'api-status-banner';
+                    banner.textContent = '🟢 P2PQuake API 正常接続中（リアルタイム連携中）';
+                }
+            } catch (err) {
+                console.error(err);
+                banner.className = 'api-status-banner error';
+                banner.textContent = '⚠️ P2PQuake APIとの通信がブロックまたは失敗しました（手動テスト発報は利用可能です）';
+                
+                document.getElementById('quakeMsg').textContent = '自動取得機能はオフライン（通信ブロック中）です。操作パネルからの手動テストをご利用ください。';
+                document.getElementById('targetAreas').textContent = '通信エラー';
+            }
+        }
+
+        function sendTest(type) {
+            if (!checkPassword()) return;
+            document.getElementById('panelStatus').textContent = 'Discordへ送信中...';
+
+            let title = "";
+            let msg = "";
+            let areas = "";
+            let cardClass = "embed-card";
+            let showActions = "none";
+            const nowTime = new Date().toLocaleString();
+
+            if (type === 'quake') {
+                title = "地震情報";
+                msg = "熊本県熊本地方で最大震度4の地震がありました。\nこの地震による津波の心配はありません。";
+                areas = "震源：熊本県熊本地方 / 規模：M4.5 / 深さ：10km";
+            } else if (type === 'eew_forecast') {
+                title = "緊急地震速報 【予報】";
+                msg = "地震検知。揺れに注意してください。";
+                areas = "予想される地域：関西・中国地方の一部";
+                cardClass = "embed-card alert-orange";
+            } else if (type === 'eew_warning') {
+                title = "緊急地震速報 【警報】";
+                msg = "茨城県で地震発生。強い揺れに備えてください！";
+                areas = "茨城 千葉 埼玉 東京 栃木 群馬 神奈川 山梨 福島 長野 静岡 新潟 宮城";
+                cardClass = "embed-card alert-red";
+                showActions = "flex";
+            } else if (type === 'tsunami') {
+                title = "津波警報・注意報";
+                msg = "以下の地域に津波警報・注意報が発表されました。直ちに高台へ避難してください！";
+                areas = "太平洋側沿岸地域・伊豆諸島・小笠原諸島";
+                cardClass = "embed-card alert-red";
+            } else if (type === 'p2p') {
+                title = "ユーザーの揺れ報告 (P2P)";
+                msg = "ユーザーからの揺れ報告が多数寄せられています。周辺の方は安全を確認してください。";
+                areas = "報告地域：東京都区部（周辺で体感揺れレベル 3〜4 相当）";
+            } else if (type === 'jalert') {
+                title = "国民保護情報（Jアラートテスト）";
+                msg = "これは、Jアラートのテストです。";
+                areas = jalertRegions;
+                cardClass = "embed-card alert-red";
+            }
+
+            const discordMsg = `@everyone\n**【テスト配信】${title}**\n${msg}\n\n対象/詳細:\n${areas}`;
+
+            fetch(webhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content: discordMsg })
+            })
+            .then(res => {
+                if (res.ok) {
+                    document.getElementById('panelStatus').textContent = `✅ ${title} の送信完了！`;
+                    
+                    const card = document.getElementById('mainCard');
+                    card.className = cardClass;
+                    document.getElementById('cardTitle').textContent = title;
+                    document.getElementById('quakeMsg').innerHTML = msg.replace(/\n/g, '<br>');
+                    document.getElementById('targetAreas').textContent = areas;
+                    document.getElementById('actionIcons').style.display = showActions;
+                    document.getElementById('reportTime').textContent = `配信システム | ${nowTime}`;
+                    document.getElementById('authPassword').value = '';
+                } else {
+                    document.getElementById('panelStatus').textContent = '❌ 送信失敗';
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById('panelStatus').textContent = '❌ ネットワークエラー';
+            });
+        }
+
+        fetchInitialEarthquake();
+    </script>
+</body>
+</html>
